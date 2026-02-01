@@ -1,40 +1,197 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence, useScroll } from 'framer-motion';
 import { Link } from 'react-scroll';
-import { Github, Linkedin, Mail, ChevronDown, Menu, X, ExternalLink } from 'lucide-react';
+import { Github, Linkedin, Mail, ChevronDown, Menu, X, ExternalLink, Calendar, Briefcase, Sparkles } from 'lucide-react';
 import './App.css';
 import { profileData } from './data';
 
-// Animaciones
+// Animaciones mejoradas
 const fadeInUp = {
-  hidden: { opacity: 0, y: 50 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
+  hidden: { opacity: 0, y: 60 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] }
+  }
+};
+
+const fadeInLeft = {
+  hidden: { opacity: 0, x: -60 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] }
+  }
+};
+
+const fadeInRight = {
+  hidden: { opacity: 0, x: 60 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] }
+  }
+};
+
+const scaleIn = {
+  hidden: { opacity: 0, scale: 0.8 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] }
+  }
 };
 
 const staggerContainer = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.2 } }
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.15, delayChildren: 0.1 }
+  }
 };
 
-// Componente Flecha (Usa la clase .arrow-container para adaptarse)
+// Componente de partículas flotantes
+const FloatingParticles = () => (
+  <div className="particles-container">
+    {[...Array(20)].map((_, i) => (
+      <motion.div
+        key={i}
+        className="particle"
+        initial={{ opacity: 0 }}
+        animate={{
+          opacity: [0, 1, 0],
+          y: [-20, -100],
+          x: Math.random() * 40 - 20
+        }}
+        transition={{
+          duration: 3 + Math.random() * 2,
+          repeat: Infinity,
+          delay: Math.random() * 5,
+          ease: "easeOut"
+        }}
+        style={{
+          left: `${Math.random() * 100}%`,
+          bottom: `${Math.random() * 30}%`
+        }}
+      />
+    ))}
+  </div>
+);
+
+// Componente Flecha mejorado
 const ScrollDownArrow = ({ toTarget }) => (
-  <motion.div 
+  <motion.div
     className="arrow-container"
-    initial={{ opacity: 0 }} 
-    whileInView={{ opacity: 1 }} 
+    initial={{ opacity: 0, y: -20 }}
+    whileInView={{ opacity: 1, y: 0 }}
     viewport={{ once: true }}
-    transition={{ delay: 0.5, duration: 1 }}
+    transition={{ delay: 0.8, duration: 0.8 }}
   >
     <Link to={toTarget} smooth={true} duration={800} offset={-50}>
-      <div className="scroll-arrow">
-        <ChevronDown size={50} color="var(--primary)" />
-      </div>
+      <motion.div
+        className="scroll-arrow"
+        whileHover={{ scale: 1.2 }}
+        whileTap={{ scale: 0.9 }}
+      >
+        <ChevronDown size={40} />
+      </motion.div>
     </Link>
+  </motion.div>
+);
+
+// Componente de Skill mejorado
+const SkillChip = ({ skill, index }) => (
+  <motion.div
+    className="skill-chip"
+    variants={scaleIn}
+    whileHover={{
+      scale: 1.05,
+      y: -5,
+      transition: { duration: 0.2 }
+    }}
+    custom={index}
+  >
+    <span className="skill-icon">{skill.icon}</span>
+    <span className="skill-name">{skill.name}</span>
+  </motion.div>
+);
+
+// Componente de Timeline para Experiencia
+const TimelineItem = ({ job, index, isLast }) => (
+  <motion.div
+    className="timeline-item"
+    variants={index % 2 === 0 ? fadeInLeft : fadeInRight}
+  >
+    <div className="timeline-content">
+      <div className="timeline-marker">
+        <Briefcase size={20} />
+      </div>
+      <div className="timeline-card">
+        <div className="timeline-header">
+          <h4 className="timeline-role">{job.role}</h4>
+          <span className="timeline-company">{job.company}</span>
+        </div>
+        <div className="timeline-meta">
+          <span className="timeline-period">
+            <Calendar size={14} />
+            {job.period}
+          </span>
+        </div>
+        <p className="timeline-desc">{job.desc}</p>
+      </div>
+    </div>
+    {!isLast && <div className="timeline-connector" />}
+  </motion.div>
+);
+
+// Componente de Proyecto mejorado
+const ProjectCard = ({ proj }) => (
+  <motion.div
+    className="project-card"
+    variants={fadeInUp}
+    whileHover={{ y: -10 }}
+    transition={{ duration: 0.3 }}
+  >
+    <div className="project-glow" />
+    <div className="project-content">
+      <div className="project-header">
+        <Sparkles size={24} className="project-icon" />
+        <h4 className="project-title">{proj.title}</h4>
+      </div>
+      <p className="project-desc">{proj.desc}</p>
+
+      <div className="project-tech">
+        {proj.tech.map((t, k) => (
+          <span key={k} className="tech-tag">{t}</span>
+        ))}
+      </div>
+
+      <div className="project-links">
+        <a href={proj.links.repo} target="_blank" rel="noreferrer" className="project-btn github-btn">
+          <Github size={18} />
+          <span>Código</span>
+        </a>
+        <a href={proj.links.demo} target="_blank" rel="noreferrer" className="project-btn demo-btn">
+          <ExternalLink size={18} />
+          <span>Demo</span>
+        </a>
+      </div>
+    </div>
   </motion.div>
 );
 
 function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const { scrollYProgress } = useScroll();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const toggleMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
   const closeMenu = () => setIsMobileMenuOpen(false);
@@ -43,64 +200,171 @@ function App() {
 
   return (
     <div className="app-container">
-      <div className="epic-bg"></div>
+      {/* Progress bar */}
+      <motion.div
+        className="scroll-progress"
+        style={{ scaleX: scrollYProgress }}
+      />
 
-      {/* 1. NAVBAR DESKTOP */}
-      <motion.nav 
-        initial={{ y: -100, x: "-50%" }} animate={{ y: 0, x: "-50%" }} transition={{ duration: 0.8 }}
-        className="navbar-desktop"
-      >
-        {navItems.map((item) => (
-          <Link key={item} to={item.toLowerCase()} smooth={true} duration={800} offset={-50} className="nav-link">
-            {item}
-          </Link>
-        ))}
-      </motion.nav>
-
-      <div className="mobile-menu-btn" onClick={toggleMenu}>
-        {isMobileMenuOpen ? <X size={30} color="#fff" /> : <Menu size={30} color="#fff" />}
+      {/* Fondo animado */}
+      <div className="epic-bg">
+        <div className="gradient-orb orb-1" />
+        <div className="gradient-orb orb-2" />
+        <div className="gradient-orb orb-3" />
+        <div className="grid-overlay" />
       </div>
 
-      {/* MENÚ MÓVIL PANTALLA COMPLETA */}
+      {/* NAVBAR DESKTOP */}
+      <motion.nav
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+        className={`navbar-desktop ${scrolled ? 'navbar-scrolled' : ''}`}
+      >
+        <div className="nav-logo">TN</div>
+        <div className="nav-links">
+          {navItems.map((item) => (
+            <Link
+              key={item}
+              to={item.toLowerCase()}
+              smooth={true}
+              duration={800}
+              offset={-50}
+              className="nav-link"
+              spy={true}
+              activeClass="nav-active"
+            >
+              {item}
+            </Link>
+          ))}
+        </div>
+        <a href={profileData.header.social.github} target="_blank" rel="noreferrer" className="nav-cta">
+          <Github size={18} />
+        </a>
+      </motion.nav>
+
+      {/* Botón menú móvil */}
+      <motion.div
+        className="mobile-menu-btn"
+        onClick={toggleMenu}
+        whileTap={{ scale: 0.9 }}
+      >
+        <AnimatePresence mode="wait">
+          {isMobileMenuOpen ? (
+            <motion.div
+              key="close"
+              initial={{ rotate: -90, opacity: 0 }}
+              animate={{ rotate: 0, opacity: 1 }}
+              exit={{ rotate: 90, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <X size={24} color="#fff" />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="menu"
+              initial={{ rotate: 90, opacity: 0 }}
+              animate={{ rotate: 0, opacity: 1 }}
+              exit={{ rotate: -90, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Menu size={24} color="#fff" />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+
+      {/* MENÚ MÓVIL */}
       <AnimatePresence>
         {isMobileMenuOpen && (
-          <motion.div 
+          <motion.div
             className="mobile-menu-overlay"
-            initial={{ opacity: 0, x: "100%" }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: "100%" }}
-            transition={{ type: "spring", stiffness: 100, damping: 20 }}
+            initial={{ opacity: 0, clipPath: "circle(0% at calc(100% - 40px) 40px)" }}
+            animate={{ opacity: 1, clipPath: "circle(150% at calc(100% - 40px) 40px)" }}
+            exit={{ opacity: 0, clipPath: "circle(0% at calc(100% - 40px) 40px)" }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           >
-            {navItems.map((item) => (
-              <Link 
-                key={item} 
-                to={item.toLowerCase()} 
-                smooth={true} duration={800} offset={-50} 
-                className="mobile-nav-link"
-                onClick={closeMenu} 
-              >
-                {item}
-              </Link>
-            ))}
+            <nav className="mobile-nav">
+              {navItems.map((item, index) => (
+                <motion.div
+                  key={item}
+                  initial={{ opacity: 0, x: 50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 + index * 0.1 }}
+                >
+                  <Link
+                    to={item.toLowerCase()}
+                    smooth={true}
+                    duration={800}
+                    offset={-50}
+                    className="mobile-nav-link"
+                    onClick={closeMenu}
+                  >
+                    {item}
+                  </Link>
+                </motion.div>
+              ))}
+            </nav>
+            <div className="mobile-menu-footer">
+              <div className="mobile-social">
+                <a href={profileData.header.social.github} target="_blank" rel="noreferrer"><Github size={24} /></a>
+                <a href={profileData.header.social.linkedin} target="_blank" rel="noreferrer"><Linkedin size={24} /></a>
+                <a href={profileData.header.social.email}><Mail size={24} /></a>
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* --- SECCIONES --- */}
-      
-      {/* INICIO */}
-      <section id="inicio" className="section">
-        <motion.div initial="hidden" animate="visible" variants={staggerContainer} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <motion.span variants={fadeInUp} style={{ color: 'var(--primary)', fontWeight: 'bold', letterSpacing: '5px', marginBottom: '20px' }}>
-            PORTFOLIO 2026
-          </motion.span>
-          <motion.h1 variants={fadeInUp} className="hero-title">{profileData.header.name}</motion.h1>
-          <motion.h2 variants={fadeInUp} className="hero-role">{profileData.header.role}</motion.h2>
-          <motion.p variants={fadeInUp} className="hero-desc">{profileData.header.tagline}</motion.p>
-          <motion.div variants={fadeInUp} style={{ display:'flex', gap:'25px', marginTop:'20px' }}>
-            <a href={profileData.header.social.github} target="_blank" rel="noreferrer" className="icon-btn"><Github size={32}/></a>
-            <a href={profileData.header.social.linkedin} target="_blank" rel="noreferrer" className="icon-btn"><Linkedin size={32}/></a>
-            <a href={profileData.header.social.email} className="icon-btn"><Mail size={32}/></a>
+      {/* SECCIONES */}
+
+      {/* INICIO / HERO */}
+      <section id="inicio" className="section hero-section">
+        <FloatingParticles />
+        <motion.div
+          className="hero-content"
+          initial="hidden"
+          animate="visible"
+          variants={staggerContainer}
+        >
+          <motion.div variants={fadeInUp} className="hero-badge">
+            <span className="badge-dot" />
+            Disponible para nuevos proyectos
+          </motion.div>
+
+          <motion.h1 variants={fadeInUp} className="hero-title">
+            {profileData.header.name}
+          </motion.h1>
+
+          <motion.div variants={fadeInUp} className="hero-role-container">
+            <span className="hero-role">{profileData.header.role}</span>
+          </motion.div>
+
+          <motion.p variants={fadeInUp} className="hero-desc">
+            {profileData.header.tagline}
+          </motion.p>
+
+          <motion.div variants={fadeInUp} className="hero-actions">
+            <Link to="contacto" smooth={true} duration={800} className="btn-primary">
+              Contactar
+              <Mail size={18} />
+            </Link>
+            <Link to="proyectos" smooth={true} duration={800} className="btn-secondary">
+              Ver proyectos
+              <ExternalLink size={18} />
+            </Link>
+          </motion.div>
+
+          <motion.div variants={fadeInUp} className="hero-social">
+            <a href={profileData.header.social.github} target="_blank" rel="noreferrer" className="social-link">
+              <Github size={22} />
+            </a>
+            <a href={profileData.header.social.linkedin} target="_blank" rel="noreferrer" className="social-link">
+              <Linkedin size={22} />
+            </a>
+            <a href={profileData.header.social.email} className="social-link">
+              <Mail size={22} />
+            </a>
           </motion.div>
         </motion.div>
         <ScrollDownArrow toTarget="perfil" />
@@ -108,14 +372,25 @@ function App() {
 
       {/* PERFIL */}
       <section id="perfil" className="section">
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.1 }} variants={staggerContainer} style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <motion.h3 variants={fadeInUp} className="section-title">Perfil Técnico</motion.h3>
-          <motion.p variants={fadeInUp} className="hero-desc" style={{ fontSize: '1.4rem' }}>{profileData.about.description}</motion.p>
-          <motion.div variants={fadeInUp} style={{ display:'flex', flexWrap:'wrap', justifyContent:'center', gap:'20px', maxWidth:'1200px', marginTop:'50px' }}>
+        <motion.div
+          className="section-container"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          variants={staggerContainer}
+        >
+          <motion.div variants={fadeInUp} className="section-header">
+            <span className="section-label">Sobre mí</span>
+            <h2 className="section-title">Perfil Técnico</h2>
+          </motion.div>
+
+          <motion.p variants={fadeInUp} className="about-text">
+            {profileData.about.description}
+          </motion.p>
+
+          <motion.div variants={staggerContainer} className="skills-grid">
             {profileData.skills.map((skill, index) => (
-              <div key={index} className="skill-chip">
-                <span style={{ color: 'var(--primary)' }}>{skill.icon}</span>{skill.name}
-              </div>
+              <SkillChip key={index} skill={skill} index={index} />
             ))}
           </motion.div>
         </motion.div>
@@ -124,68 +399,103 @@ function App() {
 
       {/* EXPERIENCIA */}
       <section id="experiencia" className="section">
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.1 }} variants={staggerContainer} style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <motion.h3 variants={fadeInUp} className="section-title">Trayectoria</motion.h3>
-          <motion.div className="grid-container" variants={staggerContainer}>
-            {profileData.experience.map((job) => (
-              <motion.div key={job.id} variants={fadeInUp} className="glass-card">
-                <h4 className="card-title">{job.role}</h4>
-                <span style={{ color: 'var(--secondary)', fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '10px' }}>{job.company}</span>
-                <span style={{ fontFamily: 'monospace', fontSize: '1rem', color: '#64748b', marginBottom: '25px' }}>{job.period}</span>
-                <p className="card-text">{job.desc}</p>
-              </motion.div>
-            ))}
+        <motion.div
+          className="section-container"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          variants={staggerContainer}
+        >
+          <motion.div variants={fadeInUp} className="section-header">
+            <span className="section-label">Experiencia</span>
+            <h2 className="section-title">Trayectoria Profesional</h2>
           </motion.div>
+
+          <div className="timeline">
+            {profileData.experience.map((job, index) => (
+              <TimelineItem
+                key={job.id}
+                job={job}
+                index={index}
+                isLast={index === profileData.experience.length - 1}
+              />
+            ))}
+          </div>
         </motion.div>
         <ScrollDownArrow toTarget="proyectos" />
       </section>
 
       {/* PROYECTOS */}
       <section id="proyectos" className="section">
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.1 }} variants={staggerContainer} style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <motion.h3 variants={fadeInUp} className="section-title">Proyecto Destacado</motion.h3>
-          <motion.div className="grid-container">
-            {profileData.projects.map((proj) => (
-              <motion.div key={proj.id} variants={fadeInUp} className="glass-card">
-                <h4 className="card-title">{proj.title}</h4>
-                <p className="card-text">{proj.desc}</p>
-                
-                {/* 1. Tecnologías */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center', marginBottom: '20px' }}>
-                  {proj.tech.map((t, k) => (
-                    <span key={k} style={{ fontSize: '0.85rem', color: 'var(--primary)', border: '1px solid rgba(0, 242, 255, 0.3)', padding: '5px 12px', borderRadius: '50px' }}>{t}</span>
-                  ))}
-                </div>
-
-                {/* 2. Botones  */}
-                <div className="project-links">
-                  <a href={proj.links.repo} target="_blank" rel="noreferrer" className="project-btn github-btn">
-                    <Github size={16} /> GitHub
-                  </a>
-                  <a href={proj.links.demo} target="_blank" rel="noreferrer" className="project-btn demo-btn">
-                    <ExternalLink size={16} /> Live Demo 
-                  </a>
-                </div>
-
-              </motion.div>
-            ))}
+        <motion.div
+          className="section-container"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          variants={staggerContainer}
+        >
+          <motion.div variants={fadeInUp} className="section-header">
+            <span className="section-label">Portafolio</span>
+            <h2 className="section-title">Proyecto Destacado</h2>
           </motion.div>
+
+          <div className="projects-grid">
+            {profileData.projects.map((proj) => (
+              <ProjectCard key={proj.id} proj={proj} />
+            ))}
+          </div>
         </motion.div>
         <ScrollDownArrow toTarget="contacto" />
       </section>
 
       {/* CONTACTO */}
-      <section id="contacto" className="section">
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={staggerContainer} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <motion.h2 variants={fadeInUp} style={{ fontSize: '3rem', fontWeight: '900', marginBottom: '30px', textAlign: 'center' }}>¿Hablamos?</motion.h2>
-          <motion.p variants={fadeInUp} className="hero-desc" style={{ fontSize: '1.5rem' }}>Estoy listo para aportar valor a tu equipo desde el primer día.</motion.p>
-          <motion.div variants={fadeInUp} style={{ marginTop: '50px' }}>
-            <a href={profileData.header.social.email} className="btn-primary">Iniciar Conversación</a>
+      <section id="contacto" className="section contact-section">
+        <motion.div
+          className="section-container contact-container"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={staggerContainer}
+        >
+          <motion.div variants={fadeInUp} className="contact-content">
+            <span className="section-label">Contacto</span>
+            <h2 className="contact-title">¿Trabajamos juntos?</h2>
+            <p className="contact-desc">
+              Estoy listo para aportar valor a tu equipo desde el primer día.
+            </p>
+            <motion.a
+              href={profileData.header.social.email}
+              className="btn-primary btn-large"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Iniciar Conversación
+              <Mail size={20} />
+            </motion.a>
           </motion.div>
-          <footer style={{ marginTop: '100px', color: '#475569', fontSize: '1rem', textAlign: 'center' }}>
-            © 2026 Tomás Manuel Navas.
-          </footer>
+
+          <motion.div variants={fadeInUp} className="contact-links">
+            <a href={profileData.header.social.linkedin} target="_blank" rel="noreferrer" className="contact-link">
+              <Linkedin size={24} />
+              <span>LinkedIn</span>
+            </a>
+            <a href={profileData.header.social.github} target="_blank" rel="noreferrer" className="contact-link">
+              <Github size={24} />
+              <span>GitHub</span>
+            </a>
+            <a href={profileData.header.social.email} className="contact-link">
+              <Mail size={24} />
+              <span>Email</span>
+            </a>
+          </motion.div>
         </motion.div>
+
+        <footer className="footer">
+          <div className="footer-content">
+            <span className="footer-logo">TN</span>
+            <span className="footer-text">© 2026 Tomás Manuel Navas. Todos los derechos reservados.</span>
+          </div>
+        </footer>
       </section>
     </div>
   );
