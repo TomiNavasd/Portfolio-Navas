@@ -27,13 +27,20 @@
     experience: [
         {
         id: 1,
+        role: "Full Stack Developer",
+        company: "faufena",
+        period: "Enero 2026 - Presente",
+        desc: "Desarrollo full stack de plataforma web con TypeScript y Python, integrando herramientas de IA (Claude, Cursor) para optimizar ciclos de entrega. Gestión de arquitectura de base de datos, despliegue con Docker/AWS y metodologías ágiles."
+        },
+        {
+        id: 2,
         role: "Técnico de Soporte IT",
         company: "SInfo",
         period: "2023 - Presente",
         desc: "Gestión integral de infraestructura corporativa on-site. Mantenimiento de servidores Windows, configuración de networking y soporte crítico."
         },
         {
-        id: 2,
+        id: 3,
         role: "Técnico de Hardware",
         company: "Nazalnformatica",
         period: "2021 - 2023",
